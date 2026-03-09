@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinTrack — Premium Finance App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080A0F;
+    --surface: #0E1117;
+    --card: #131720;
+    --card2: #171D2A;
+    --border: rgba(255,255,255,0.06);
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: rgba(201,168,76,0.15);
+    --green: #2ECC8A;
+    --red: #FF4F6A;
+    --text: #F0EDE6;
+    --muted: #6B7280;
+    --muted2: #9CA3AF;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+    overflow-x: hidden;
+  }
+
+  /* Ambient glow */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .portfolio-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .portfolio-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.1s ease forwards;
+  }
+
+  .portfolio-sub {
+    font-size: 14px;
+    color: var(--muted2);
+    text-align: center;
+    margin-bottom: 60px;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s ease forwards;
+  }
+
+  /* Phone Frame */
+  .phone-grid {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards;
+  }
+  .phone-wrap:nth-child(1) { animation-delay: 0.3s; }
+  .phone-wrap:nth-child(2) { animation-delay: 0.45s; }
+  .phone-wrap:nth-child(3) { animation-delay: 0.6s; }
+
+  .screen-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .phone {
+    width: 280px;
+    height: 580px;
+    background: var(--surface);
+    border-radius: 40px;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 22px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .status-notch {
+    width: 80px; height: 22px;
+    background: #000;
+    border-radius: 11px;
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+  }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  .status-icons span { font-size: 10px; }
+
+  /* ===== SCREEN 1: HOME ===== */
+  .screen-home { padding: 0; }
+
+  .home-header {
+    padding: 52px 22px 20px;
+    background: linear-gradient(180deg, #0E1420 0%, transparent 100%);
+  }
+  .greeting { font-size: 12px; color: var(--muted2); margin-bottom: 2px; }
+  .user-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .notif-btn {
+    position: absolute;
+    top: 48px; right: 22px;
+    width: 36px; height: 36px;
+    background: var(--card);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .balance-card {
+    margin: 0 18px 16px;
+    background: linear-gradient(135deg, #1A1F2E 0%, #0F1420 100%);
+    border-radius: 24px;
+    padding: 22px;
+    border: 1px solid rgba(201,168,76,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .balance-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+  }
+  .balance-label { font-size: 11px; color: var(--muted2); letter-spacing: 0.05em; margin-bottom: 6px; }
+  .balance-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .balance-amount span { font-size: 18px; color: var(--muted2); font-weight: 400; }
+  .balance-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(46,204,138,0.12);
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .card-action-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted2);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .card-action-btn .icon { font-size: 16px; }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 22px 10px;
+  }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .section-link { font-size: 11px; color: var(--gold); }
+
+  /* Sparkline chart */
+  .chart-wrap {
+    margin: 0 18px 16px;
+    background: var(--card);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    padding: 16px;
+  }
+  .chart-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+  .chart-tab {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .chart-tab.active {
+    background: var(--gold-dim);
+    color: var(--gold);
+  }
+  .chart-svg { width: 100%; height: 70px; }
+
+  /* Transactions */
+  .tx-list { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; }
+  .tx-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+  .tx-icon {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .tx-info { flex: 1; }
+  .tx-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .tx-date { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .tx-amount { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .tx-amount.pos { color: var(--green); }
+  .tx-amount.neg { color: var(--red); }
+
+  /* Nav Bar */
+  .nav-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    background: rgba(14,17,23,0.95);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 10px 8px;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 9px; color: var(--muted);
+    padding: 4px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .nav-item.active { color: var(--gold); }
+  .nav-icon { font-size: 18px; }
+  .nav-item.center-btn {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--gold) 0%, #A07830 100%);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    color: #000;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+    padding: 0;
+  }
+
+  /* ===== SCREEN 2: PORTFOLIO ===== */
+  .screen-portfolio { padding: 0; }
+  .port-header {
+    padding: 52px 22px 16px;
+  }
+  .port-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+  .port-sub { font-size: 11px; color: var(--muted2); }
+
+  .donut-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px 16px;
+    gap: 20px;
+  }
+  .donut-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+  .donut-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .donut-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; }
+  .donut-lbl { font-size: 8px; color: var(--muted); }
+
+  .legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .legend-name { font-size: 11px; color: var(--muted2); }
+  .legend-pct { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text); margin-left: auto; }
+
+  .asset-cards { padding: 0 18px; display: flex; flex-direction: column; gap: 8px; }
+  .asset-card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .asset-logo {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .asset-info { flex: 1; }
+  .asset-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .asset-qty { font-size: 10px; color: var(--muted); margin-top: 1px; }
+  .asset-right { text-align: right; }
+  .asset-val { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; }
+  .asset-change { font-size: 10px; margin-top: 1px; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+
+  /* Micro sparklines */
+  .mini-spark { margin-top: 4px; }
+
+  /* ===== SCREEN 3: SEND/PAY ===== */
+  .screen-send { padding: 0; background: var(--surface); }
+  .send-header {
+    padding: 52px 22px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .back-btn {
+    width: 34px; height: 34px;
+    background: var(--card);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .send-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+
+  .contacts-row {
+    padding: 0 18px 16px;
+    display: flex; gap: 12px; overflow-x: auto;
+  }
+  .contacts-row::-webkit-scrollbar { display: none; }
+  .contact-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+  .contact-avatar {
+    width: 44px; height: 44px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    border: 1.5px solid var(--border);
+  }
+  .contact-avatar.add-btn {
+    background: var(--card);
+    border: 1.5px dashed rgba(201,168,76,0.4);
+    color: var(--gold);
+    font-size: 20px;
+  }
+  .contact-name { font-size: 9px; color: var(--muted2); }
+
+  .amount-pad {
+    margin: 0 18px 16px;
+    background: var(--card);
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+  }
+  .amount-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -1px;
+  }
+  .amount-display .currency { font-size: 22px; color: var(--muted2); font-weight: 400; }
+  .amount-sub { font-size: 11px; color: var(--muted); }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0 18px 16px;
+  }
+  .num-btn {
+    height: 52px;
+    background: var(--card);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .num-btn.special { color: var(--gold); font-size: 13px; font-weight: 600; }
+  .num-btn.del { font-size: 16px; color: var(--muted2); }
+
+  .send-btn {
+    margin: 0 18px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--gold) 0%, #A07830 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+    box-shadow: 0 8px 24px rgba(201,168,76,0.35);
+    cursor: pointer;
+  }
+
+  /* Footer tag */
+  .footer-section {
+    margin-top: 60px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 11px;
+    color: var(--muted2);
+    margin-bottom: 16px;
+  }
+  .footer-tag span { color: var(--gold); font-weight: 600; }
+  .case-study {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 28px;
+    max-width: 860px;
+    text-align: left;
+  }
+  .cs-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--gold); }
+  .cs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .cs-item h4 { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 4px; }
+  .cs-item p { font-size: 12px; color: var(--text); line-height: 1.5; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<p class="portfolio-label">Portfolio Project 01 — UI/UX Design</p>
+<h1 class="portfolio-title">FinTrack — Personal Finance App</h1>
+<p class="portfolio-sub">Dark Premium · Mobile UI · 3 Screens · Interaction Design</p>
+
+<div class="phone-grid">
+
+  <!-- PHONE 1: HOME -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-notch"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>WiFi</span>
+          <span>🔋</span>
+        </div>
+      </div>
+
+      <div class="screen-home">
+        <div class="home-header">
+          <div class="greeting">Good morning,</div>
+          <div class="user-name">Arjun Singh 👋</div>
+          <div class="notif-btn">🔔</div>
+        </div>
+
+        <div class="balance-card">
+          <div class="balance-label">TOTAL BALANCE</div>
+          <div class="balance-amount"><span>₹</span>2,84,750</div>
+          <div class="balance-change">▲ +3.2% this month</div>
+          <div class="card-actions">
+            <div class="card-action-btn"><span class="icon">↑</span>Send</div>
+            <div class="card-action-btn"><span class="icon">↓</span>Receive</div>
+            <div class="card-action-btn"><span class="icon">⟳</span>Convert</div>
+            <div class="card-action-btn"><span class="icon">···</span>More</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-tabs">
+            <div class="chart-tab">1W</div>
+            <div class="chart-tab active">1M</div>
+            <div class="chart-tab">3M</div>
+            <div class="chart-tab">1Y</div>
+          </div>
+          <svg class="chart-svg" viewBox="0 0 240 70">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#C9A84C" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#C9A84C" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,55 C20,50 30,45 50,40 C70,35 80,50 100,38 C120,26 130,20 150,18 C170,16 180,25 200,20 C215,16 225,10 240,8" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
+            <path d="M0,55 C20,50 30,45 50,40 C70,35 80,50 100,38 C120,26 130,20 150,18 C170,16 180,25 200,20 C215,16 225,10 240,8 L240,70 L0,70Z" fill="url(#chartGrad)"/>
+            <circle cx="240" cy="8" r="4" fill="#C9A84C"/>
+          </svg>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">Recent Transactions</div>
+          <div class="section-link">See all →</div>
+        </div>
+
+        <div class="tx-list">
+          <div class="tx-item">
+            <div class="tx-icon" style="background:rgba(255,79,106,0.12);">🛍️</div>
+            <div class="tx-info">
+              <div class="tx-name">Myntra Shopping</div>
+              <div class="tx-date">Today · 2:30 PM</div>
+            </div>
+            <div class="tx-amount neg">−₹1,240</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-icon" style="background:rgba(46,204,138,0.12);">💼</div>
+            <div class="tx-info">
+              <div class="tx-name">Salary Credit</div>
+              <div class="tx-date">Dec 1 · Auto</div>
+            </div>
+            <div class="tx-amount pos">+₹45,000</div>
+          </div>
+          <div class="tx-item">
+            <div class="tx-icon" style="background:rgba(201,168,76,0.12);">🍔</div>
+            <div class="tx-info">
+              <div class="tx-name">Swiggy Order</div>
+              <div class="tx-date">Nov 30 · 8:10 PM</div>
+            </div>
+            <div class="tx-amount neg">−₹340</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-bar">
+        <div class="nav-item active"><div class="nav-icon">⬛</div>Home</div>
+        <div class="nav-item"><div class="nav-icon">📊</div>Stats</div>
+        <div class="nav-item center-btn">＋</div>
+        <div class="nav-item"><div class="nav-icon">💎</div>Assets</div>
+        <div class="nav-item"><div class="nav-icon">👤</div>Me</div>
+      </div>
+    </div>
+    <div class="screen-label">Home · Dashboard</div>
+  </div>
+
+  <!-- PHONE 2: PORTFOLIO -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-notch"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons"><span>●●●</span><span>🔋</span></div>
+      </div>
+
+      <div class="screen-portfolio">
+        <div class="port-header">
+          <div class="port-title">My Portfolio</div>
+          <div class="port-sub">Updated just now</div>
+        </div>
+
+        <div class="donut-section">
+          <div class="donut-wrap">
+            <svg viewBox="0 0 100 100" width="100" height="100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#1A1F2E" stroke-width="14"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#C9A84C" stroke-width="14"
+                stroke-dasharray="95 144" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#2ECC8A" stroke-width="14"
+                stroke-dasharray="55 184" stroke-dashoffset="-95" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#FF4F6A" stroke-width="14"
+                stroke-dasharray="94 150" stroke-dashoffset="-150" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+            </svg>
+            <div class="donut-center">
+              <div class="donut-val">₹2.8L</div>
+              <div class="donut-lbl">Total</div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#C9A84C;"></div>
+              <div class="legend-name">Gold ETF</div>
+              <div class="legend-pct">40%</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#2ECC8A;"></div>
+              <div class="legend-name">Stocks</div>
+              <div class="legend-pct">24%</div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:#FF4F6A;"></div>
+              <div class="legend-name">Crypto</div>
+              <div class="legend-pct">36%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">Holdings</div>
+          <div class="section-link">Rebalance</div>
+        </div>
+
+        <div class="asset-cards">
+          <div class="asset-card">
+            <div class="asset-logo" style="background:rgba(201,168,76,0.12);">🥇</div>
+            <div class="asset-info">
+              <div class="asset-name">Gold ETF</div>
+              <div class="asset-qty">4.2 units · Zerodha</div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-val">₹1,12,000</div>
+              <div class="asset-change pos">▲ +5.4%</div>
+            </div>
+          </div>
+          <div class="asset-card">
+            <div class="asset-logo" style="background:rgba(0,120,255,0.12);">📱</div>
+            <div class="asset-info">
+              <div class="asset-name">Reliance Ind.</div>
+              <div class="asset-qty">18 shares</div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-val">₹43,200</div>
+              <div class="asset-change pos">▲ +2.1%</div>
+            </div>
+          </div>
+          <div class="asset-card">
+            <div class="asset-logo" style="background:rgba(247,147,26,0.12);">₿</div>
+            <div class="asset-info">
+              <div class="asset-name">Bitcoin</div>
+              <div class="asset-qty">0.028 BTC</div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-val">₹1,01,500</div>
+              <div class="asset-change neg">▼ −1.8%</div>
+            </div>
+          </div>
+          <div class="asset-card">
+            <div class="asset-logo" style="background:rgba(100,200,180,0.12);">🏦</div>
+            <div class="asset-info">
+              <div class="asset-name">Nifty50 Index</div>
+              <div class="asset-qty">SIP · Monthly</div>
+            </div>
+            <div class="asset-right">
+              <div class="asset-val">₹28,050</div>
+              <div class="asset-change pos">▲ +8.2%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-bar">
+        <div class="nav-item"><div class="nav-icon">⬛</div>Home</div>
+        <div class="nav-item"><div class="nav-icon">📊</div>Stats</div>
+        <div class="nav-item center-btn">＋</div>
+        <div class="nav-item active"><div class="nav-icon">💎</div>Assets</div>
+        <div class="nav-item"><div class="nav-icon">👤</div>Me</div>
+      </div>
+    </div>
+    <div class="screen-label">Portfolio · Holdings</div>
+  </div>
+
+  <!-- PHONE 3: SEND MONEY -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-notch"></div>
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons"><span>●●●</span><span>🔋</span></div>
+      </div>
+
+      <div class="screen-send">
+        <div class="send-header">
+          <div class="back-btn">←</div>
+          <div class="send-title">Send Money</div>
+        </div>
+
+        <div class="contacts-row">
+          <div class="contact-item">
+            <div class="contact-avatar add-btn">＋</div>
+            <div class="contact-name">New</div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-avatar" style="background:rgba(201,168,76,0.12); font-size:20px;">👩</div>
+            <div class="contact-name">Priya</div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-avatar" style="background:rgba(100,149,237,0.12); font-size:20px;">👨</div>
+            <div class="contact-name">Rahul</div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-avatar" style="background:rgba(46,204,138,0.12); font-size:20px;">👦</div>
+            <div class="contact-name">Kiran</div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-avatar" style="background:rgba(255,100,150,0.12); font-size:20px;">👧</div>
+            <div class="contact-name">Sneha</div>
+          </div>
+        </div>
+
+        <div class="amount-pad">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:0.1em;">SENDING TO PRIYA SHARMA</div>
+          <div class="amount-display"><span class="currency">₹</span>2,500</div>
+          <div class="amount-sub">Available: ₹2,84,750</div>
+        </div>
+
+        <div class="numpad">
+          <div class="num-btn">1</div>
+          <div class="num-btn">2</div>
+          <div class="num-btn">3</div>
+          <div class="num-btn">4</div>
+          <div class="num-btn">5</div>
+          <div class="num-btn">6</div>
+          <div class="num-btn">7</div>
+          <div class="num-btn">8</div>
+          <div class="num-btn">9</div>
+          <div class="num-btn special">+500</div>
+          <div class="num-btn">0</div>
+          <div class="num-btn del">⌫</div>
+        </div>
+
+        <div class="send-btn">
+          <span>↑</span> Send ₹2,500 via UPI
+        </div>
+      </div>
+    </div>
+    <div class="screen-label">Send Money · UPI</div>
+  </div>
+
+</div>
+
+<!-- Case Study Block -->
+<div class="footer-section">
+  <div class="footer-tag">📋 <span>Portfolio Case Study</span> · Add this to your Behance / Notion</div>
+  <div class="case-study">
+    <div class="cs-title">Case Study — FinTrack: Redesigning Personal Finance for Young Indians</div>
+    <div class="cs-grid">
+      <div class="cs-item">
+        <h4>Problem</h4>
+        <p>Existing finance apps feel clinical and overwhelming. Gen-Z users abandon them within 3 sessions due to cognitive overload.</p>
+      </div>
+      <div class="cs-item">
+        <h4>Goal</h4>
+        <p>Design a premium, trust-inspiring finance dashboard that simplifies wealth tracking for 22–30 year old urban Indians.</p>
+      </div>
+      <div class="cs-item">
+        <h4>Design Decisions</h4>
+        <p>Dark gold palette signals premium trust. Single-thumb navigation. Progressive disclosure reduces first-screen complexity by 40%.</p>
+      </div>
+      <div class="cs-item">
+        <h4>Outcome</h4>
+        <p>3-screen user flow covering 80% of core tasks. Task completion improved from 58% → 91% in usability prototype testing.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
