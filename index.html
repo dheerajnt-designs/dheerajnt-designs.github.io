@@ -146,9 +146,8 @@ footer { padding: 24px 48px; border-top: 1px solid var(--border); display: flex;
 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Scroll reveal */
-.ri { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
-.ri.on { opacity: 1; transform: translateY(0); }
+/* Scroll reveal - always visible */
+.ri { opacity: 1; transform: none; }
 
 @media (max-width: 900px) {
   nav { padding: 16px 24px; }
